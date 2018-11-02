@@ -64,7 +64,7 @@ update msg model =
         InputDocumentId str ->
           ({model | documentIdString = str}, Cmd.none)
         GetDocument ->
-           (model, getDocumentById (423))
+           getDocument model
         ReceiveDocument result ->
             case result of
                 Ok documentRecord -> 
@@ -85,10 +85,13 @@ render sourceText =
 view : Model (Html Msg) -> Html Msg
 view model =
     div outerStyle
-     [  div [style "margin-left" "20px" ] [getDocumentButton 100, inputDocumentId ]
+     [  div [style "margin-left" "20px" ] [getDocumentButton 100, inputDocumentId, showMessage model ]
         , div [style "margin-top" "10px"] [display model]
        
       ]
+
+showMessage model = 
+  span [style "margin-left" "10px"] [text model.documentIdString]
 
 getDocumentButton width =
     button ([ onClick GetDocument ] ++ buttonStyle colorBlue width) [ text "Get Document" ]
@@ -110,7 +113,7 @@ renderedSource model =
 
 -- DOCUMENT
 
-getDocument : Model (Html Msg) -> (Model (Html Msg), Cmd Msg)
+getDocument : Model (Html msg) -> (Model (Html msg), Cmd Msg)
 getDocument model =
   case (String.toInt model.documentIdString) of 
     Nothing -> (model, Cmd.none)
