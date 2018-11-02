@@ -9,7 +9,8 @@ import Time exposing (Posix)
 
 
 backend : String
-backend = "http://localhost:4000"
+backend = "https://nshost.herokuapp.com"
+-- backend = "http://localhost:4000"
 
 timeout : Float 
 timeout = 20000

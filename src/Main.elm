@@ -76,9 +76,9 @@ render sourceText =
 view : Model (Html Msg) -> Html Msg
 view model =
     div outerStyle
-     [
-        div [] [display model]
-       , div [ ] [getDocumentButton 100]
+     [  div [style "margin-left" "20px" ] [getDocumentButton 100]
+        , div [style "margin-top" "10px"] [display model]
+       
       ]
 
 getDocumentButton width =
@@ -107,7 +107,7 @@ getDocumentById id =
 
 
 outerStyle =
-    [ style "margin-top" "20px"
+    [ style "margin-top" "-40px"
     , style "background-color" "#e1e6e8"
     , style "padding" "20px"
     , style "width" "1430px"
@@ -116,7 +116,7 @@ outerStyle =
 
 
 renderedSourceStyle =
-    textStyle "400px" "450px" "#fff"
+    textStyle "500px" "600px" "#fff"
 
 
 textStyle width height color =
