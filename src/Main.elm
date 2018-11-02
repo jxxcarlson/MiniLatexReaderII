@@ -28,12 +28,14 @@ main =
 
 type alias Model a =
     { renderedText : a
+    , documentIdString : String
     , message : String }
 
 
 type Msg
     = NoOp
     | GetDocument  
+    | InputDocumentId String
     | ReceiveDocument (Result Http.Error DocumentRecord)
 
 
@@ -44,7 +46,9 @@ initialText = "This is a test: $$\\int_0^1 x^n dx = \\frac{1}{n+1}$$"
 
 init : Flags -> ( Model (Html msg), Cmd Msg )
 init flags =
-    ( { renderedText = render initialText, message = "Hello!" }, getDocumentById 427 )
+    ( { renderedText = render initialText
+    , documentIdString = ""
+     , message = "Hello!" }, getDocumentById 427 )
 
 
 subscriptions : Model (Html msg) -> Sub Msg
@@ -57,8 +61,10 @@ update msg model =
     case msg of
         NoOp ->
             ( model, Cmd.none )
+        InputDocumentId str ->
+          ({model | documentIdString = str}, Cmd.none)
         GetDocument ->
-           (model, getDocumentById 423)
+           (model, getDocumentById (423))
         ReceiveDocument result ->
             case result of
                 Ok documentRecord -> 
@@ -66,6 +72,8 @@ update msg model =
 
                 Err err ->
                     ( { model | message = "HTTP Error" }, Cmd.none )
+
+
 
 
 
@@ -77,7 +85,7 @@ render sourceText =
 view : Model (Html Msg) -> Html Msg
 view model =
     div outerStyle
-     [  div [style "margin-left" "20px" ] [getDocumentButton 100]
+     [  div [style "margin-left" "20px" ] [getDocumentButton 100, inputDocumentId ]
         , div [style "margin-top" "10px"] [display model]
        
       ]
@@ -85,6 +93,8 @@ view model =
 getDocumentButton width =
     button ([ onClick GetDocument ] ++ buttonStyle colorBlue width) [ text "Get Document" ]
 
+inputDocumentId  = 
+  input [ onInput InputDocumentId] [ ]
 
 display : Model (Html Msg) -> Html Msg
 display model =
@@ -99,6 +109,12 @@ renderedSource model =
 
 
 -- DOCUMENT
+
+getDocument : Model (Html Msg) -> (Model (Html Msg), Cmd Msg)
+getDocument model =
+  case (String.toInt model.documentIdString) of 
+    Nothing -> (model, Cmd.none)
+    Just id -> (model, getDocumentById id)
 
 getDocumentById : Int -> Cmd Msg
 getDocumentById id =
