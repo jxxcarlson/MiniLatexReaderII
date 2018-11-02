@@ -103,14 +103,6 @@ display : Model (Html Msg) -> Html Msg
 display model =
     div renderedSourceStyle [ model.renderedText ]
 
-
-renderedSource : Model (Html msg) -> Html msg
-renderedSource model =
-    Html.div renderedSourceStyle
-        [ model.renderedText ]
-
-
-
 -- DOCUMENT
 
 getDocument : Model (Html msg) -> (Model (Html msg), Cmd Msg)
