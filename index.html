@@ -32,12 +32,58 @@
 
 <body style="background-color: #e1e6e8; margin: 20px; height: 700px; width: 600px;">
 
-    <h2 style="margin-left: 40px;">MiniLatex Reader</h2>
+    <div id="leftcolumn">
+        <h2 style="margin-left: 40px;">MiniLatex Reader</h2>
+
+        <div id="main"></div>
+    </div>
+
+    <div id="rightcolumn" style="position: absolute; left: 650px; top: 20px; width: 400px; height: 700px; overflow: scroll">
+
+        <h3>Notes</h3>
+
+        <p>The MiniLatex Reader is a small app that you can use to display
+            MiniLatex source text on a web page. It can be configured
+            to point to any web server (the <b>host</b>) which provides documents according
+            to the MiniLatex Docuument Protocol (MDP), which we will
+            describe in separate document. MiniLatex documents are retrieved
+            by an integer id. The id for the document shown on start up
+            is configuread as described below.
+        </p>
+
+        <h4>Configuration </h4>
+        <p>The host is configured by editing the text
+            shown below, which you will find in <code>index.html</code>.
+        </p>
+
+        <code>flags: {
+            host: "https://nshost.herokuapp.com",
+            documentId: 427
+        }</code>
+
+        <h4>Issues</h4>
+
+        <p>Some documents make use of author-defined macros.
+            I have not yet written the code to load these. </p>
+
+
+
+        <h4>Plans</h4>
+
+        <p>The present version of <i>MiniLatex Reader</i> retrieves
+            documents from the host using the document ID. We plan to
+            add a simple search interface, e.g., search by title.</p>
+
+
+
+        <h4>Contact</h4>
+
+        <p>Please contact me at jxxcarlson@gmail.com if you have comments
+            or questions.
+        </p>
 
 
     </div>
-
-    <div id="main"></div>
 
 
     <script>
@@ -46,8 +92,12 @@
         var root = document.getElementById("main");
         var app = Elm.Main.init({
             node: root,
-            flags: {}
+            flags: {
+                host: "https://nshost.herokuapp.com",
+                documentId: 427
+            }
         });
+
 
         var typesetTimeout = null;
         var typesetQueue = [];

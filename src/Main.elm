@@ -27,7 +27,8 @@ main =
 
 
 type alias Model a =
-    { renderedText : a
+    { host : String
+    , renderedText : a
     , documentIdString : String
     , counter : Int
     , message : String }
@@ -41,16 +42,18 @@ type Msg
 
 
 type alias Flags =
-    {  }
+    { host : String, documentId : Int }
 
 initialText = "This is a test: $$\\int_0^1 x^n dx = \\frac{1}{n+1}$$"
 
 init : Flags -> ( Model (Html msg), Cmd Msg )
 init flags =
-    ( { renderedText = render 0 initialText
+    ( { 
+      host = flags.host
+    , renderedText = render 0 initialText
     , documentIdString = ""
     , counter = 0
-     , message = "Hello!" }, getDocumentById 427 )
+     , message = "Hello!" }, getDocumentById flags.host flags.documentId )
 
 
 subscriptions : Model (Html msg) -> Sub Msg
@@ -93,7 +96,8 @@ view model =
       ]
 
 showMessage model = 
-  span [style "margin-left" "10px"] [text <| String.fromInt model.counter]
+  span [style "margin-left" "10px"] []
+  -- [text <| String.fromInt model.counter]
 
 getDocumentButton width =
     button ([ onClick GetDocument ] ++ buttonStyle colorBlue width) [ text "Get Document" ]
@@ -111,9 +115,9 @@ getDocument : Model (Html msg) -> (Model (Html msg), Cmd Msg)
 getDocument model =
   case (String.toInt model.documentIdString) of 
     Nothing -> (model, Cmd.none)
-    Just id -> (model, getDocumentById id)
+    Just id -> (model, getDocumentById model.host id)
 
-getDocumentById : Int -> Cmd Msg
-getDocumentById id =
-    Http.send ReceiveDocument <| getDocumentByIdRequest id 
+getDocumentById : String -> Int -> Cmd Msg
+getDocumentById host id =
+    Http.send ReceiveDocument <| getDocumentByIdRequest host id 
 

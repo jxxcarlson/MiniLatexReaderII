@@ -8,9 +8,9 @@ import Dict exposing(Dict)
 import Time exposing (Posix)
 
 
-backend : String
-backend = "https://nshost.herokuapp.com"
--- backend = "http://localhost:4000"
+-- backend : String
+-- backend = "https://nshost.herokuapp.com"
+-- -- backend = "http://localhost:4000"
 
 timeout : Float 
 timeout = 20000
@@ -31,8 +31,8 @@ type alias Document =
 
 
 
-getDocumentByIdRequest : Int -> Http.Request DocumentRecord
-getDocumentByIdRequest id  =
+getDocumentByIdRequest : String -> Int -> Http.Request DocumentRecord
+getDocumentByIdRequest host id  =
     let
       route = "/api/public/documents/" ++ String.fromInt id
       headers = [ Http.header "APIVersion" "V2" ]
@@ -40,7 +40,7 @@ getDocumentByIdRequest id  =
     Http.request
         { method = "Get"
         , headers = headers
-        , url = backend ++ route
+        , url = host ++ route
         , body = Http.jsonBody Encode.null
         , expect = Http.expectJson documentRecordDecoder
         , timeout = Just timeout
