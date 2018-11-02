@@ -29,6 +29,7 @@ main =
 type alias Model a =
     { renderedText : a
     , documentIdString : String
+    , counter : Int
     , message : String }
 
 
@@ -46,8 +47,9 @@ initialText = "This is a test: $$\\int_0^1 x^n dx = \\frac{1}{n+1}$$"
 
 init : Flags -> ( Model (Html msg), Cmd Msg )
 init flags =
-    ( { renderedText = render initialText
+    ( { renderedText = render 0 initialText
     , documentIdString = ""
+    , counter = 0
      , message = "Hello!" }, getDocumentById 427 )
 
 
@@ -68,7 +70,7 @@ update msg model =
         ReceiveDocument result ->
             case result of
                 Ok documentRecord -> 
-                    ( { model | renderedText = render documentRecord.document.content }, Cmd.none )
+                    ( { model | renderedText = render model.counter documentRecord.document.content, counter = model.counter + 1 }, Cmd.none )
 
                 Err err ->
                     ( { model | message = "HTTP Error" }, Cmd.none )
@@ -77,9 +79,9 @@ update msg model =
 
 
 
-render : String -> Html msg
-render sourceText =
-    MiniLatex.render "$$ $$" sourceText
+render : Int -> String -> Html msg
+render seed     sourceText =
+    MiniLatex.renderWithSeed seed "$$ $$" sourceText
 
 
 view : Model (Html Msg) -> Html Msg
@@ -91,7 +93,7 @@ view model =
       ]
 
 showMessage model = 
-  span [style "margin-left" "10px"] [text model.documentIdString]
+  span [style "margin-left" "10px"] [text <| String.fromInt model.counter]
 
 getDocumentButton width =
     button ([ onClick GetDocument ] ++ buttonStyle colorBlue width) [ text "Get Document" ]
