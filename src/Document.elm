@@ -1,4 +1,9 @@
-module Document exposing(getDocumentByIdRequest, DocumentRecord, Document, texMacroDocumentID)
+module Document exposing(
+    DocumentRecord
+   , Document
+   , getDocumentByIdRequest
+   , texMacroDocumentID
+   )
 
 import Http
 import Json.Decode as Decode exposing (Decoder, at, decodeString, int, list, string)
@@ -36,6 +41,10 @@ type DocType
     | Master
 
 
+--- 
+--- TEX MACROS
+---
+
 texMacroDocumentID : List String -> Maybe Int 
 texMacroDocumentID tagList = 
   let 
@@ -56,6 +65,13 @@ parseIntegerValueForKey key =
     |. spaces
     |= int 
 
+
+---
+--- REQUESTS
+---
+
+
+
 getDocumentByIdRequest : String -> Int -> Http.Request DocumentRecord
 getDocumentByIdRequest host id  =
     let
@@ -71,6 +87,11 @@ getDocumentByIdRequest host id  =
         , timeout = Just timeout
         , withCredentials = False
         }
+
+
+---
+--- DECODERS
+---
 
 documentRecordDecoder : Decoder DocumentRecord
 documentRecordDecoder =

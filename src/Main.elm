@@ -111,6 +111,21 @@ update msg model =
 
 
 
+view : Model (Html Msg) -> Html Msg
+view model =
+    div outerStyle
+     [  div [style "margin-left" "20px" ] [getDocumentButton 100, inputDocumentId model]
+        , div [style "margin-left" "20px", style "margin-top" "10px" ] [titleElement model, authorElement model ]
+        , div [style "margin-top" "10px"] [display model]
+       
+      ]
+
+
+---
+--- DOCUMENT RENDERING
+---
+
+
 render : Maybe Document -> Int -> String -> Html msg
 render maybeTexDocument seed sourceText =
   let 
@@ -126,14 +141,10 @@ normalize str =
     str |> String.lines |> List.filter (\x -> x /= "") |> String.join "\n"
 
 
-view : Model (Html Msg) -> Html Msg
-view model =
-    div outerStyle
-     [  div [style "margin-left" "20px" ] [getDocumentButton 100, inputDocumentId model]
-        , div [style "margin-left" "20px", style "margin-top" "10px" ] [titleElement model, authorElement model ]
-        , div [style "margin-top" "10px"] [display model]
-       
-      ]
+
+--- 
+--- VIEW HELPERS
+---
 
 titleElement : Model (Html Msg) -> Html Msg 
 titleElement model = 
@@ -180,7 +191,9 @@ display : Model (Html Msg) -> Html Msg
 display model =
     div renderedSourceStyle [ model.renderedText ]
 
--- DOCUMENT
+--
+-- DOCUMENT REQUESTS
+--
 
 getDocument : Model (Html msg) -> (Model (Html msg), Cmd Msg)
 getDocument model =
@@ -200,3 +213,4 @@ getTexDocumentById host maybeId =
     Nothing -> Cmd.none  
     Just id -> Http.send ReceiveTexDocument <| getDocumentByIdRequest host id 
 
+   
