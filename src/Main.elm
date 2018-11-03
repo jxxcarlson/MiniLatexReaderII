@@ -147,7 +147,7 @@ update msg model =
 view : Model (Html Msg) -> Html Msg
 view model =
     div outerStyle
-     [  div [ ] [getDocumentButton 100, inputDocumentId model, toggleMasterButton model 120 ]
+     [  div [ ] [getDocumentButton 120, inputDocumentId model, toggleMasterButton model 120 ]
         , div [ style "margin-top" "10px" ] [titleElement model, authorElement model ]
         , div [style "margin-top" "10px"] [display model]
        
@@ -181,7 +181,7 @@ displayMasterDocumentAsText document =
 
 displayMasterDocument : Document -> Html Msg
 displayMasterDocument document =
-  div [ ] (toc document)
+  div tocStyle (toc document)
 
 linkFromTocElement : TOCElement -> Html Msg 
 linkFromTocElement tocElement = 

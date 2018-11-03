@@ -14,8 +14,11 @@ outerStyle =
 
 
 renderedSourceStyle =
-    textStyle "500px" "600px" "#fff"
+    textStyle "400px" "600px" "#fff"
 
+tocStyle =
+    textStyle "400px" "600px" "#fff"
+    
 masterDocumentStyle =
     textStyle "500px" "600px" "#fff" ++ [style "white-space" "pre"]
 
@@ -81,5 +84,6 @@ linkStyle color width =
     , style "font-size" "9pt"
     , style "text-align" "left"
     , style "border" "none"
+    , style "background-color" "#fff"
     ]
 
