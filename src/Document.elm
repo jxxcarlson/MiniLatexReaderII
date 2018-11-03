@@ -28,8 +28,12 @@ type alias Document =
     , title : String
     , content : String
     , tags : List String
+    , docType : DocType
     }
 
+type DocType
+    = Standard
+    | Master
 
 
 texMacroDocumentID : List String -> Maybe Int 
@@ -82,3 +86,17 @@ documentDecoder =
         |> JPipeline.required "title" Decode.string
         |> JPipeline.required "content" Decode.string
         |> JPipeline.required "tags" (Decode.list Decode.string)
+        |> JPipeline.required "docType" (Decode.string |> Decode.andThen decodeDocType)
+
+
+decodeDocType : String -> Decoder DocType
+decodeDocType docTypeString =
+    case docTypeString of
+        "standard" ->
+            Decode.succeed Standard
+
+        "master" ->
+            Decode.succeed Master
+
+        _ ->
+            Decode.fail <| "I don't know a docType named " ++ docTypeString
