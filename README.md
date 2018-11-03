@@ -2,9 +2,7 @@
 
 MiniLatex Reader II is a small app which can be
 embedded in a web page and used to display
-LaTeX as HTML. Please see
-[MiniLatex Reader II](https://knode.io/reader/)
--- https://knode.io/reader/
+LaTeX as HTML. Please see https://knode.io/reader/
 for a demonstration. Or try the phone version at
 https://knode.io/phone/
 
