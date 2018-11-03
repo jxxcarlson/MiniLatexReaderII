@@ -12,7 +12,7 @@ import MiniLatex.MiniLatex as MiniLatex
 import Random
 import Task
 import Http
-import Document exposing(getDocumentByIdRequest, DocumentRecord)
+import Document exposing(getDocumentByIdRequest, texMacroDocumentID, DocumentRecord, Document)
 import Style exposing(..)
 
 
@@ -30,6 +30,9 @@ type alias Model a =
     { host : String
     , renderedText : a
     , documentIdString : String
+    , maybeCurrentDocument : Maybe Document
+    , maybeTexMacroDocument : Maybe Document
+    , maybeTexMacroId : Maybe Int
     , counter : Int
     , message : String }
 
@@ -39,6 +42,7 @@ type Msg
     | GetDocument  
     | InputDocumentId String
     | ReceiveDocument (Result Http.Error DocumentRecord)
+    | ReceiveTexDocument (Result Http.Error DocumentRecord)
 
 
 type alias Flags =
@@ -48,12 +52,19 @@ initialText = "This is a test: $$\\int_0^1 x^n dx = \\frac{1}{n+1}$$"
 
 init : Flags -> ( Model (Html msg), Cmd Msg )
 init flags =
-    ( { 
-      host = flags.host
-    , renderedText = render 0 initialText
-    , documentIdString = ""
-    , counter = 0
-     , message = "Hello!" }, getDocumentById flags.host flags.documentId )
+    (  
+        { 
+            host = flags.host
+            , maybeCurrentDocument = Nothing
+            , maybeTexMacroDocument = Nothing
+            , maybeTexMacroId = Nothing
+            , renderedText = render Nothing 0 initialText
+            , documentIdString = ""
+            , counter = 0
+            , message = "Hello!" 
+        }
+        , getDocumentById flags.host flags.documentId 
+    )
 
 
 subscriptions : Model (Html msg) -> Sub Msg
@@ -73,7 +84,25 @@ update msg model =
         ReceiveDocument result ->
             case result of
                 Ok documentRecord -> 
-                    ( { model | renderedText = render model.counter documentRecord.document.content, counter = model.counter + 1 }, Cmd.none )
+                  let  
+                    maybeCurrentDocument = Just documentRecord.document
+                    maybeTexMacroId = texMacroId maybeCurrentDocument
+                  in 
+                    ( { model | 
+                            maybeCurrentDocument = maybeCurrentDocument
+                          , maybeTexMacroId = maybeTexMacroId
+                          , renderedText = render model.maybeTexMacroDocument  model.counter documentRecord.document.content
+                          , counter = model.counter + 1 
+                        }, getTexDocumentById model.host maybeTexMacroId )
+
+                Err err ->
+                    ( { model | message = "HTTP Error" }, Cmd.none )
+        ReceiveTexDocument result ->
+            case result of
+                Ok documentRecord ->  
+                    ( { model | 
+                            maybeTexMacroDocument = Just documentRecord.document
+                        }, Cmd.none )
 
                 Err err ->
                     ( { model | message = "HTTP Error" }, Cmd.none )
@@ -82,28 +111,70 @@ update msg model =
 
 
 
-render : Int -> String -> Html msg
-render seed     sourceText =
-    MiniLatex.renderWithSeed seed "$$ $$" sourceText
+render : Maybe Document -> Int -> String -> Html msg
+render maybeTexDocument seed sourceText =
+  let 
+    texMacros = case maybeTexDocument of 
+      Nothing -> "\\newcommand{\\nothingXXX}{}"
+      Just document -> document.content |> normalize  
+  in 
+    MiniLatex.renderWithSeed seed texMacros sourceText
+
+
+normalize : String -> String
+normalize str =
+    str |> String.lines |> List.filter (\x -> x /= "") |> String.join "\n"
 
 
 view : Model (Html Msg) -> Html Msg
 view model =
     div outerStyle
-     [  div [style "margin-left" "20px" ] [getDocumentButton 100, inputDocumentId, showMessage model ]
+     [  div [style "margin-left" "20px" ] [getDocumentButton 100, inputDocumentId model]
+        , div [style "margin-left" "20px", style "margin-top" "10px" ] [titleElement model, authorElement model ]
         , div [style "margin-top" "10px"] [display model]
        
       ]
 
+titleElement : Model (Html Msg) -> Html Msg 
+titleElement model = 
+  case model.maybeCurrentDocument of 
+    Nothing -> span [style "margin-right" "10px"] [text <| ""]
+    Just document -> span [style "margin-right" "10px", style "font-weight" "bold", style "font-size" "18px"] [text <| document.title ]
+
+authorElement : Model (Html Msg) -> Html Msg 
+authorElement model = 
+  case model.maybeCurrentDocument of 
+    Nothing -> span [style "margin-right" "10px"] [text <| ""]
+    Just document -> span [style "margin-right" "10px"] [text <| document.authorName ]
+
+texMacroId : Maybe Document -> Maybe Int  
+texMacroId maybeDocument = 
+  maybeDocument 
+    |> Maybe.map .tags
+    |> Maybe.andThen texMacroDocumentID
+
+displayTexMacroId : Model (Html msg) -> String 
+displayTexMacroId model = 
+  case model.maybeTexMacroId of 
+    Nothing -> "---"
+    Just id -> String.fromInt id
+
 showMessage model = 
-  span [style "margin-left" "10px"] []
-  -- [text <| String.fromInt model.counter]
+  case model.maybeCurrentDocument of  
+    Nothing -> span [style "margin-left" "10px"] [] 
+    Just document -> span [style "margin-left" "10px"] [text <| displayTexMacroId model]
 
 getDocumentButton width =
     button ([ onClick GetDocument ] ++ buttonStyle colorBlue width) [ text "Get Document" ]
 
-inputDocumentId  = 
-  input [ onInput InputDocumentId] [ ]
+inputDocumentId  model =  
+  input [ onInput InputDocumentId, style "width" "40px", HA.placeholder (documentIdString model)] [ ]
+
+documentIdString : Model (Html msg) -> String 
+documentIdString model = 
+  case model.maybeCurrentDocument of 
+    Nothing -> ""
+    Just document -> String.fromInt document.id
 
 display : Model (Html Msg) -> Html Msg
 display model =
@@ -120,4 +191,12 @@ getDocument model =
 getDocumentById : String -> Int -> Cmd Msg
 getDocumentById host id =
     Http.send ReceiveDocument <| getDocumentByIdRequest host id 
+
+
+
+getTexDocumentById : String -> Maybe Int -> Cmd Msg
+getTexDocumentById host maybeId =
+  case maybeId of 
+    Nothing -> Cmd.none  
+    Just id -> Http.send ReceiveTexDocument <| getDocumentByIdRequest host id 
 

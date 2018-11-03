@@ -1,4 +1,4 @@
-module Document exposing(getDocumentByIdRequest, DocumentRecord)
+module Document exposing(getDocumentByIdRequest, DocumentRecord, Document, texMacroDocumentID)
 
 import Http
 import Json.Decode as Decode exposing (Decoder, at, decodeString, int, list, string)
@@ -6,6 +6,7 @@ import Json.Decode.Pipeline as JPipeline exposing (hardcoded, optional, required
 import Json.Encode as Encode
 import Dict exposing(Dict)
 import Time exposing (Posix)
+import Parser exposing(Parser, run, succeed, int, symbol, spaces, (|.), (|=))
 
 
 -- backend : String
@@ -21,15 +22,35 @@ type alias DocumentRecord =
     { document : Document }
 
 
-type alias Document =
+type alias Document =   
     { id : Int
     , authorName : String
     , title : String
     , content : String
+    , tags : List String
     }
 
 
 
+texMacroDocumentID : List String -> Maybe Int 
+texMacroDocumentID tagList = 
+  let 
+    item = List.filter (String.contains "texmacros:") tagList |> List.head
+  in    
+    item |> Maybe.andThen (getIntegerValueForKey "texmacros")
+
+getIntegerValueForKey : String -> String -> Maybe Int    
+getIntegerValueForKey key str = 
+  case run (parseIntegerValueForKey key) str of 
+    Ok value -> Just value
+    _ -> Nothing 
+
+parseIntegerValueForKey : String -> Parser Int 
+parseIntegerValueForKey key = 
+  succeed identity 
+    |. symbol (key ++ ":")
+    |. spaces
+    |= int 
 
 getDocumentByIdRequest : String -> Int -> Http.Request DocumentRecord
 getDocumentByIdRequest host id  =
@@ -60,3 +81,4 @@ documentDecoder =
         |> JPipeline.required "authorName" Decode.string
         |> JPipeline.required "title" Decode.string
         |> JPipeline.required "content" Decode.string
+        |> JPipeline.required "tags" (Decode.list Decode.string)
