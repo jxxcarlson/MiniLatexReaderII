@@ -16,6 +16,8 @@ outerStyle =
 renderedSourceStyle =
     textStyle "500px" "600px" "#fff"
 
+masterDocumentStyle =
+    textStyle "500px" "600px" "#fff" ++ [style "white-space" "pre"]
 
 textStyle width height color =
     [ style "width" width

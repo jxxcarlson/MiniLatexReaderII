@@ -12,8 +12,15 @@ import MiniLatex.MiniLatex as MiniLatex
 import Random
 import Task
 import Http
-import Document exposing(getDocumentByIdRequest, texMacroDocumentID, DocumentRecord, Document)
+import Document exposing(
+      Document
+    , DocumentRecord
+    , DocType(..)
+    , getDocumentByIdRequest
+    , texMacroDocumentID
+   )
 import Style exposing(..)
+import TOCParser exposing(..)
 
 
 main : Program Flags (Model (Html Msg)) Msg
@@ -114,11 +121,38 @@ update msg model =
 view : Model (Html Msg) -> Html Msg
 view model =
     div outerStyle
-     [  div [style "margin-left" "20px" ] [getDocumentButton 100, inputDocumentId model]
+     [  div [style "margin-left" "20px" ] [getDocumentButton 100, inputDocumentId model, docTypeElement model]
         , div [style "margin-left" "20px", style "margin-top" "10px" ] [titleElement model, authorElement model ]
         , div [style "margin-top" "10px"] [display model]
        
       ]
+
+
+--- 
+--- MAIN VIEW FUNCTIONS
+---
+
+display : Model (Html Msg) -> Html Msg
+display model =
+  case  model.maybeCurrentDocument of 
+    Nothing -> div [] [text "Document not loaded"]
+    Just document ->
+      case document.docType of 
+        Standard -> displayStandardDocument model
+        Master -> displayMasterDocument document
+
+displayStandardDocument : Model (Html Msg) -> Html Msg
+displayStandardDocument model =
+    div renderedSourceStyle [ model.renderedText ]
+
+displayMasterDocument : Document -> Html Msg
+displayMasterDocument document =
+  let 
+    toc = tocFromString document.content 
+    tocInfo = "-----------------------\n" ++ (String.fromInt (List.length toc)) ++ " documents"
+  in
+    div masterDocumentStyle [ text <| document.content ++ tocInfo]
+
 
 
 ---
@@ -141,22 +175,38 @@ normalize str =
     str |> String.lines |> List.filter (\x -> x /= "") |> String.join "\n"
 
 
-
 --- 
 --- VIEW HELPERS
 ---
+
+firstTextElementStyle = [style "margin-right" "10px", style "margin-left" "10px"]
+textElementStyle = [style "margin-right" "10px"]
+boldTextlementStyle = [style "margin-right" "10px", style "font-weight" "bold", style "font-size" "18px"]
+
+
+docTypeElement : Model (Html Msg) -> Html Msg 
+docTypeElement model = 
+  case model.maybeCurrentDocument of 
+    Nothing -> span [style "margin-right" "10px"] [text <| ""]
+    Just document -> span firstTextElementStyle [text <| docTypeText document ]
+
+docTypeText : Document -> String 
+docTypeText document = 
+  case document.docType of 
+    Standard -> "Standard document"
+    Master -> "Master document"
 
 titleElement : Model (Html Msg) -> Html Msg 
 titleElement model = 
   case model.maybeCurrentDocument of 
     Nothing -> span [style "margin-right" "10px"] [text <| ""]
-    Just document -> span [style "margin-right" "10px", style "font-weight" "bold", style "font-size" "18px"] [text <| document.title ]
+    Just document -> span boldTextlementStyle [text <| document.title ]
 
 authorElement : Model (Html Msg) -> Html Msg 
 authorElement model = 
   case model.maybeCurrentDocument of 
     Nothing -> span [style "margin-right" "10px"] [text <| ""]
-    Just document -> span [style "margin-right" "10px"] [text <| document.authorName ]
+    Just document -> span textElementStyle [text <| document.authorName ]
 
 texMacroId : Maybe Document -> Maybe Int  
 texMacroId maybeDocument = 
@@ -187,9 +237,6 @@ documentIdString model =
     Nothing -> ""
     Just document -> String.fromInt document.id
 
-display : Model (Html Msg) -> Html Msg
-display model =
-    div renderedSourceStyle [ model.renderedText ]
 
 --
 -- DOCUMENT REQUESTS

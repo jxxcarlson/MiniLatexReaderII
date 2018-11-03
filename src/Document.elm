@@ -1,6 +1,7 @@
 module Document exposing(
     DocumentRecord
    , Document
+   , DocType(..)
    , getDocumentByIdRequest
    , texMacroDocumentID
    )
@@ -69,7 +70,6 @@ parseIntegerValueForKey key =
 ---
 --- REQUESTS
 ---
-
 
 
 getDocumentByIdRequest : String -> Int -> Http.Request DocumentRecord
