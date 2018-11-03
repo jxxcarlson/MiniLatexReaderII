@@ -23,7 +23,6 @@ textStyle width height color =
     [ style "width" width
     , style "height" height
     , style "padding" "15px"
-    , style "margin-left" "20px"
     , style "background-color" color
     , style "overflow" "scroll"
     , style "float" "left"
@@ -70,4 +69,17 @@ buttonStyle color width =
     , style "border" "none"
     ]
 
+linkStyle : String -> Int -> List (Html.Attribute msg)
+linkStyle color width =
+    let
+        realWidth =
+            width + 0 |> String.fromInt |> (\x -> x ++ "px")
+    in
+    [ style "color" colorBlue
+    , style "width" realWidth
+    , style "height" "25px"
+    , style "font-size" "9pt"
+    , style "text-align" "left"
+    , style "border" "none"
+    ]
 

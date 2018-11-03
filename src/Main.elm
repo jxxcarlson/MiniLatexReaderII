@@ -20,7 +20,7 @@ import Document exposing(
     , texMacroDocumentID
    )
 import Style exposing(..)
-import TOCParser exposing(..)
+import TOCParser exposing(TOCElement, tocFromString, titleOfTOCElement, idOfTOCElement, levelOfTOCElement)
 
 
 main : Program Flags (Model (Html Msg)) Msg
@@ -38,6 +38,8 @@ type alias Model a =
     , renderedText : a
     , documentIdString : String
     , maybeCurrentDocument : Maybe Document
+    , maybeLastDocument : Maybe Document
+    , maybeMasterDocument : Maybe Document
     , maybeTexMacroDocument : Maybe Document
     , maybeTexMacroId : Maybe Int
     , counter : Int
@@ -46,10 +48,12 @@ type alias Model a =
 
 type Msg
     = NoOp
-    | GetDocument  
+    | GetDocument 
+    | GetDocumentById Int 
     | InputDocumentId String
     | ReceiveDocument (Result Http.Error DocumentRecord)
     | ReceiveTexDocument (Result Http.Error DocumentRecord)
+    | ToggleMaster   
 
 
 type alias Flags =
@@ -63,7 +67,9 @@ init flags =
         { 
             host = flags.host
             , maybeCurrentDocument = Nothing
+            , maybeLastDocument = Nothing
             , maybeTexMacroDocument = Nothing
+            , maybeMasterDocument = Nothing
             , maybeTexMacroId = Nothing
             , renderedText = render Nothing 0 initialText
             , documentIdString = ""
@@ -88,17 +94,33 @@ update msg model =
           ({model | documentIdString = str}, Cmd.none)
         GetDocument ->
            getDocument model
+        GetDocumentById id ->
+           (model, getDocumentById model.host id)
         ReceiveDocument result ->
             case result of
                 Ok documentRecord -> 
                   let  
                     maybeCurrentDocument = Just documentRecord.document
+                    maybeDocumentType = docType maybeCurrentDocument
                     maybeTexMacroId = texMacroId maybeCurrentDocument
+                    maybeMasterDocument = case (maybeDocumentType, model.maybeMasterDocument) of 
+                      (Just Master, _) -> maybeCurrentDocument
+                      (_, Just _) -> model.maybeMasterDocument
+                      (_, _) -> Nothing
+                    maybeLastDocument = case (maybeDocumentType, model.maybeLastDocument) of 
+                      (Just Standard, _) ->  maybeCurrentDocument
+                      (_, _) -> model.maybeLastDocument
+                    renderedText = case maybeDocumentType of 
+                      Just Master -> model.renderedText 
+                      Just Standard -> render model.maybeTexMacroDocument  model.counter documentRecord.document.content
+                      Nothing -> model.renderedText 
                   in 
                     ( { model | 
                             maybeCurrentDocument = maybeCurrentDocument
                           , maybeTexMacroId = maybeTexMacroId
-                          , renderedText = render model.maybeTexMacroDocument  model.counter documentRecord.document.content
+                          , maybeMasterDocument = maybeMasterDocument
+                          , maybeLastDocument = maybeLastDocument
+                          , renderedText = renderedText
                           , counter = model.counter + 1 
                         }, getTexDocumentById model.host maybeTexMacroId )
 
@@ -115,14 +137,18 @@ update msg model =
                     ( { model | message = "HTTP Error" }, Cmd.none )
 
 
-
+        ToggleMaster ->
+          case docType model.maybeCurrentDocument of 
+            Just Standard -> ({model | maybeCurrentDocument = model.maybeMasterDocument}, Cmd.none)
+            Just Master -> ({model | maybeCurrentDocument = model.maybeLastDocument}, Cmd.none)
+            Nothing -> (model, Cmd.none)
 
 
 view : Model (Html Msg) -> Html Msg
 view model =
     div outerStyle
-     [  div [style "margin-left" "20px" ] [getDocumentButton 100, inputDocumentId model, docTypeElement model]
-        , div [style "margin-left" "20px", style "margin-top" "10px" ] [titleElement model, authorElement model ]
+     [  div [ ] [getDocumentButton 100, inputDocumentId model, toggleMasterButton model 120 ]
+        , div [ style "margin-top" "10px" ] [titleElement model, authorElement model ]
         , div [style "margin-top" "10px"] [display model]
        
       ]
@@ -145,15 +171,28 @@ displayStandardDocument : Model (Html Msg) -> Html Msg
 displayStandardDocument model =
     div renderedSourceStyle [ model.renderedText ]
 
-displayMasterDocument : Document -> Html Msg
-displayMasterDocument document =
+displayMasterDocumentAsText : Document -> Html Msg
+displayMasterDocumentAsText document =
   let 
-    toc = tocFromString document.content 
-    tocInfo = "-----------------------\n" ++ (String.fromInt (List.length toc)) ++ " documents"
+    tableOfContents= tocFromString document.content 
+    tocInfo = "-----------------------\n" ++ (String.fromInt (List.length tableOfContents)) ++ " documents"
   in
     div masterDocumentStyle [ text <| document.content ++ tocInfo]
 
+displayMasterDocument : Document -> Html Msg
+displayMasterDocument document =
+  div [ ] (toc document)
 
+linkFromTocElement : TOCElement -> Html Msg 
+linkFromTocElement tocElement = 
+  div [] [
+    button ([ onClick <| GetDocumentById (idOfTOCElement tocElement) ] ++ linkStyle colorBlue 300) [ text <| titleOfTOCElement tocElement ]
+  ]
+
+toc : Document -> List (Html Msg)
+toc document = 
+ List.map linkFromTocElement (tocFromString document.content)
+    
 
 ---
 --- DOCUMENT RENDERING
@@ -167,7 +206,7 @@ render maybeTexDocument seed sourceText =
       Nothing -> "\\newcommand{\\nothingXXX}{}"
       Just document -> document.content |> normalize  
   in 
-    MiniLatex.renderWithSeed seed texMacros sourceText
+    MiniLatex.renderWithSeed seed (Debug.log "TEXMACROS" texMacros) sourceText
 
 
 normalize : String -> String
@@ -193,8 +232,15 @@ docTypeElement model =
 docTypeText : Document -> String 
 docTypeText document = 
   case document.docType of 
-    Standard -> "Standard document"
-    Master -> "Master document"
+    Standard -> "S"
+    Master -> "M"
+
+lastDocTitleElement : Model (Html Msg) -> Html Msg 
+lastDocTitleElement model = 
+  case model.maybeLastDocument of 
+    Nothing -> span [style "margin-right" "10px"] [text <| ""]
+    Just document -> span textElementStyle [text <| (String.left 10 document.title) ]
+
 
 titleElement : Model (Html Msg) -> Html Msg 
 titleElement model = 
@@ -214,6 +260,27 @@ texMacroId maybeDocument =
     |> Maybe.map .tags
     |> Maybe.andThen texMacroDocumentID
 
+texMacroStatus : Model (Html msg) -> String 
+texMacroStatus model = 
+  case model.maybeTexMacroDocument of 
+    Nothing -> "Macros: not loaded"
+    Just document -> "Macros: LOADED"
+
+texMacroStatusElement : Model (Html Msg) -> Html Msg 
+texMacroStatusElement model = 
+  case model.maybeCurrentDocument of 
+    Nothing -> span [style "margin-right" "10px"] [text <| ""]
+    Just document -> span textElementStyle [text <| texMacroStatus model ]
+
+
+docType : Maybe Document -> Maybe DocType  
+docType maybeDocument = 
+  maybeDocument 
+    |> Maybe.map .docType
+ 
+    
+   
+
 displayTexMacroId : Model (Html msg) -> String 
 displayTexMacroId model = 
   case model.maybeTexMacroId of 
@@ -228,8 +295,20 @@ showMessage model =
 getDocumentButton width =
     button ([ onClick GetDocument ] ++ buttonStyle colorBlue width) [ text "Get Document" ]
 
+toggleMasterButton model width =
+  case (model.maybeMasterDocument, model.maybeLastDocument) of 
+    (Just _, Just _) -> button ([ onClick ToggleMaster ] ++ buttonStyle colorBlue width ++ [style "margin-left" "10px"]) [ text <| toggleTitle model]
+    (_, _) -> span [] []
+
+toggleTitle : Model (Html msg) -> String
+toggleTitle model = 
+  case docType model.maybeCurrentDocument of 
+    Just Master -> "Last document"
+    Just Standard -> "Table of contents"
+    Nothing -> ""
+
 inputDocumentId  model =  
-  input [ onInput InputDocumentId, style "width" "40px", HA.placeholder (documentIdString model)] [ ]
+  input [ onInput InputDocumentId, style "width" "40px", style "height" "18px", HA.placeholder (documentIdString model)] [ ]
 
 documentIdString : Model (Html msg) -> String 
 documentIdString model = 

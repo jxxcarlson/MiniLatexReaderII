@@ -1,9 +1,21 @@
-module TOCParser exposing(tocFromString)
+module TOCParser exposing(TOCElement, tocFromString, titleOfTOCElement, idOfTOCElement, levelOfTOCElement)
 
 import Parser exposing(..)
 
 type TOCElement = 
   TOCElement Int Int String 
+
+titleOfTOCElement : TOCElement -> String
+titleOfTOCElement  (TOCElement level_ id_ title_) =
+  title_
+
+idOfTOCElement : TOCElement -> Int
+idOfTOCElement  (TOCElement level_ id_ title_)  =
+  id_
+
+levelOfTOCElement : TOCElement -> Int
+levelOfTOCElement  (TOCElement level_ id_ title_)  =
+  level_
 
 tocFromString : String -> List TOCElement
 tocFromString str =
