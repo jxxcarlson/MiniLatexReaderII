@@ -43,7 +43,10 @@ type alias Model a =
     , maybeTexMacroDocument : Maybe Document
     , maybeTexMacroId : Maybe Int
     , counter : Int
-    , message : String }
+    , message : String
+    , width : String 
+    , height : String 
+    , leftmargin : String }
 
 
 type Msg
@@ -57,7 +60,11 @@ type Msg
 
 
 type alias Flags =
-    { host : String, documentId : Int }
+    { host : String
+    , documentId : Int
+    , width : String
+    , height : String 
+    , leftmargin : String }
 
 initialText = "This is a test: $$\\int_0^1 x^n dx = \\frac{1}{n+1}$$"
 
@@ -75,6 +82,9 @@ init flags =
             , documentIdString = ""
             , counter = 0
             , message = "Hello!" 
+            , width = flags.width 
+            , height = flags.height 
+            , leftmargin = flags.leftmargin
         }
         , getDocumentById flags.host flags.documentId 
     )
@@ -165,23 +175,23 @@ display model =
     Just document ->
       case document.docType of 
         Standard -> displayStandardDocument model
-        Master -> displayMasterDocument document
+        Master -> displayMasterDocument model document
 
 displayStandardDocument : Model (Html Msg) -> Html Msg
 displayStandardDocument model =
-    div renderedSourceStyle [ model.renderedText ]
+    div (renderedSourceStyle model.width model.height) [ model.renderedText ]
 
-displayMasterDocumentAsText : Document -> Html Msg
-displayMasterDocumentAsText document =
+displayMasterDocumentAsText : Model (Html Msg) -> Document -> Html Msg
+displayMasterDocumentAsText model document =
   let 
     tableOfContents= tocFromString document.content 
     tocInfo = "-----------------------\n" ++ (String.fromInt (List.length tableOfContents)) ++ " documents"
   in
-    div masterDocumentStyle [ text <| document.content ++ tocInfo]
+    div (masterDocumentStyle model.width model.height) [ text <| document.content ++ tocInfo]
 
-displayMasterDocument : Document -> Html Msg
-displayMasterDocument document =
-  div tocStyle (toc document)
+displayMasterDocument : Model (Html Msg) -> Document -> Html Msg
+displayMasterDocument model document =
+  div (tocStyle model.width model.height) (toc document)
 
 linkFromTocElement : TOCElement -> Html Msg 
 linkFromTocElement tocElement = 
@@ -206,7 +216,7 @@ render maybeTexDocument seed sourceText =
       Nothing -> "\\newcommand{\\nothingXXX}{}"
       Just document -> document.content |> normalize  
   in 
-    MiniLatex.renderWithSeed seed (Debug.log "TEXMACROS" texMacros) sourceText
+    MiniLatex.renderWithSeed seed  texMacros sourceText
 
 
 normalize : String -> String

@@ -5,22 +5,19 @@ import Html.Attributes as HA exposing (..)
 
 
 outerStyle =
-    [ style "margin-top" "-40px"
+    [ style "margin-top" "-25px"
     , style "background-color" "#e1e6e8"
-    , style "padding" "20px"
-    , style "width" "1430px"
-    , style "height" "710px"
     ]
 
 
-renderedSourceStyle =
-    textStyle "400px" "600px" "#fff"
+renderedSourceStyle width height =
+    textStyle width height "#fff"
 
-tocStyle =
-    textStyle "400px" "600px" "#fff"
+tocStyle width height=
+    textStyle width height "#fff"
     
-masterDocumentStyle =
-    textStyle "500px" "600px" "#fff" ++ [style "white-space" "pre"]
+masterDocumentStyle width height=
+    textStyle width height "#fff" ++ [style "white-space" "pre"]
 
 textStyle width height color =
     [ style "width" width

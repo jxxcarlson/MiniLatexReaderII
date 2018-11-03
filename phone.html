@@ -30,7 +30,7 @@
 
 </head>
 
-<body style="background-color: #e1e6e8; margin: 20px; height: 700px; width: 600px;">
+<body style="background-color: #e1e6e8;">
 
     <div id="leftcolumn">
         <h3 style="margin-bottom: 10px;">MiniLatex Reader II</h3>
@@ -38,53 +38,6 @@
         <div id="main"></div>
     </div>
 
-    <div id="rightcolumn" style="position: absolute; left: 650px; top: 20px; width: 400px; height: 700px; overflow: scroll">
-
-        <h3>Notes</h3>
-
-        <p>The MiniLatex Reader II is a small app embedded in a ordinary
-            web page (this one!) that you can use to display
-            MiniLatex documents. The demo app points to nshost.herokuapp.com;
-            however, it can be configured
-            to point to any web server (the <b>host</b>).
-            Try entering the ids 438 and (especially) 424 in the search box, upper left.</p>
-
-        <p>Try also the <a href="https://knode.io/phone">smart phone version</a>
-            at https://knode.io/phone .</p>
-
-        <h4>Configuration and Installation</h4>
-        <p>The host is configured by editing the text
-            shown below, which you will find in <code>index.html</code>.
-        </p>
-
-        <code>flags: {
-            host: "https://nshost.herokuapp.com",
-            documentId: 427
-        }</code>
-
-        See the README on <a href="https://github.com/jxxcarlson/MiniLatexReaderII">GitHub</a>
-        for installation and more configuration instructions.
-
-        <h4>Plans</h4>
-
-        <p>The present version of MiniLatex Reader II retrieves
-            documents from the host using the document ID. We plan various
-            experiments: (1) a simple search interface, e.g., search by title,
-            (2) a configurable &quot;reading list&quot; that presents a series
-            of documents that can be read by clicking on the document title.</p>
-
-
-
-        <h4>Source Code and Contact</h4>
-
-        <p>
-            The project is open-source, so you can modify it for your own needs.
-            Please contact me at jxxcarlson@gmail.com if you have comments
-            or questions.
-        </p>
-
-
-    </div>
 
 
     <script>
@@ -96,8 +49,8 @@
             flags: {
                 host: "https://nshost.herokuapp.com",
                 documentId: 427,
-                width: "500px",
-                height: "600px",
+                width: "360px",
+                height: "500px",
                 leftmargin: "40px"
             }
         });
