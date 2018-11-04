@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>MiniLatex Reader III</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/custom-elements/1.1.1/custom-elements.min.js"></script>
+
+
+    <script type="text/x-mathjax-config">
+		MathJax.Hub.Config(
+			// elements: ["#renderedtext", "#renderthis"],
+			{ tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+			processEscapes: true,
+			messageStyle: "none",
+			processSectionDelay: 0,
+			processUpdateTime: 0,
+			TeX: { equationNumbers: {autoNumber: "AMS"},
+					 noErrors: {disabled: true}
+					}
+			}
+		)
+  </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+    <script src="Main.min.js" charset="utf-8"></script>
+
+</head>
+
+<body style="background-color: #e1e6e8; margin: 20px; height: 700px; width: 600px;">
+
+    <div id="leftcolumn">
+        <h3 style="margin-bottom: 10px;">MiniLatex Reader III</h3>
+
+        <div id="main"></div>
+    </div>
+
+    <div id="rightcolumn" style="position: absolute; left: 970px; top: 60px; width: 400px; height: 680px; overflow: scroll">
+
+        <h3>Notes</h3>
+
+        <p>This is MiniLatex Reader III. Try 424 for the document Id. Then try clcicking
+            on items in the table of contents.
+        </p>
+
+
+    </div>
+
+
+    <script>
+        var sourceDiv = document.getElementById("source");
+
+        var root = document.getElementById("main");
+        var app = Elm.Main.init({
+            node: root,
+            flags: {
+                host: "https://nshost.herokuapp.com",
+                documentId: 427,
+                width: "500px",
+                height: "650px",
+                leftmargin: "40px"
+            }
+        });
+
+
+        var typesetTimeout = null;
+        var typesetQueue = [];
+        function enqueueTypeset(el) {
+            typesetQueue.push(el);
+            clearTimeout(typesetTimeout);
+            typesetTimeout = setTimeout(function () {
+                var toTypeset = typesetQueue;
+                MathJax.Hub.Queue(["resetEquationNumbers", MathJax.InputJax.TeX]);
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, typesetQueue], function (arg) {
+                    toTypeset.forEach(function (el) {
+                        el.style.opacity = 1;
+                    });
+                });
+                typesetQueue = [];
+            }, 1);
+        }
+
+        var updateQueue = [];
+        var updateTimeout = null;
+        function enqueueUpdate(el) {
+            updateQueue.push(el);
+            clearTimeout(updateTimeout);
+            updateTimeout = setTimeout(function () {
+                MathJax.Hub.Queue(["Update", MathJax.Hub, updateQueue]);
+                updateQueue = [];
+            }, 0);
+        }
+
+        customElements.define(
+            "math-text",
+            class extends HTMLElement {
+                constructor() {
+                    super();
+                    this._content = this.content;
+                }
+
+                get content() {
+                    return this._content;
+                }
+
+                set content(value) {
+                    if (this._content === value) return;
+                    this._content = value;
+                    var jaxScript = this.querySelector("script");
+                    if (!jaxScript) return;
+                    jaxScript.textContent = this._content;
+                    enqueueUpdate(this);
+                }
+
+                connectedCallback() {
+                    this.textContent = this._content;
+                    this._connected = true;
+                    this.style.opacity = 1;
+                    this.style.display = "inline";
+                    enqueueTypeset(this);
+                }
+            }
+        );
+    </script>
+
+</body>
+
+</html>

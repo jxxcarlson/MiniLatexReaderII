@@ -13,9 +13,20 @@ outerStyle =
 renderedSourceStyle width height =
     textStyle width height "#fff"
 
+rightColumnStyle =
+    [
+          style "position" "absolute"
+        , style "left" "400px"
+        , style "top" "80px"
+    ]
+
 tocStyle width height=
-    textStyle width height "#fff"
+    textStyle "width" height "#fff"
     
+tocStyle2 width height=
+    textStyle "300px" height "#fff"
+
+ 
 masterDocumentStyle width height=
     textStyle width height "#fff" ++ [style "white-space" "pre"]
 

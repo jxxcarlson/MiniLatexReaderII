@@ -122,7 +122,7 @@ update msg model =
                       (_, _) -> model.maybeLastDocument
                     renderedText = case maybeDocumentType of 
                       Just Master -> model.renderedText 
-                      Just Standard -> render (Debug.log "MACROS" model.maybeTexMacroDocument)  model.counter documentRecord.document.content
+                      Just Standard -> render  model.maybeTexMacroDocument  model.counter documentRecord.document.content
                       Nothing -> model.renderedText 
                   in 
                     ( { model | 
@@ -157,8 +157,8 @@ update msg model =
 view : Model (Html Msg) -> Html Msg
 view model =
     div outerStyle
-     [  div [ ] [getDocumentButton 120, inputDocumentId model, toggleMasterButton model 120 ,texMacroStatusElement model]
-        , div [ style "margin-top" "10px" ] [titleElement model, authorElement model ]
+     [  div [ ] [getDocumentButton 120, inputDocumentId model, toggleMasterButton model 120]
+        , div [ style "margin-top" "10px" ] []
         , div [style "margin-top" "10px"] [display model]
        
       ]
@@ -168,8 +168,15 @@ view model =
 --- MAIN VIEW FUNCTIONS
 ---
 
-display : Model (Html Msg) -> Html Msg
-display model =
+display : Model (Html Msg) -> Html Msg 
+display model =  
+  case model.maybeMasterDocument of 
+    Nothing -> display1 model 
+    Just _ -> display2 model  
+
+
+display1 : Model (Html Msg) -> Html Msg
+display1 model =
   case  model.maybeCurrentDocument of 
     Nothing -> div [] [text "Document not loaded"]
     Just document ->
@@ -179,7 +186,11 @@ display model =
 
 displayStandardDocument : Model (Html Msg) -> Html Msg
 displayStandardDocument model =
-    div (renderedSourceStyle model.width model.height) [ model.renderedText ]
+   div [] [
+      div [ style "margin-bottom" "10px" , style "font-size" "18px"] [titleElement model.maybeCurrentDocument, authorElement model.maybeCurrentDocument ]
+    , div (renderedSourceStyle model.width model.height) [ model.renderedText ]
+   ]
+    
 
 displayMasterDocumentAsText : Model (Html Msg) -> Document -> Html Msg
 displayMasterDocumentAsText model document =
@@ -195,6 +206,44 @@ displayMasterDocument model document =
    div [style "display" "none", HA.id "renderedtext"] [ text <| "$$\n" ++ (getTexMacros model.maybeTexMacroDocument ) ++ "\n$$"]
    , div (tocStyle model.width model.height) (toc document)
   ]
+
+
+  ---
+  --- DISPLAY2
+  --- 
+
+
+display2 : Model (Html Msg) -> Html Msg
+display2 model =
+  div [] [
+        displayMasterDocument2 model
+      , displayStandardDocument2 model
+  ]
+
+displayStandardDocument2 : Model (Html Msg) -> Html Msg
+displayStandardDocument2 model =
+ div rightColumnStyle [
+       div [ style "margin-bottom" "10px" , style "font-size" "18px"] [titleElement model.maybeCurrentDocument, authorElement model.maybeCurrentDocument ]
+     , div (renderedSourceStyle model.width model.height) [ model.renderedText ]
+   ]
+    
+
+displayMasterDocument2 : Model (Html Msg) ->  Html Msg
+displayMasterDocument2 model =
+  case model.maybeMasterDocument of 
+    Nothing -> div [] []
+    Just document -> 
+      div [] [
+         div [ style "margin-bottom" "10px" , style "font-size" "18px"] [titleElement model.maybeMasterDocument, authorElement model.maybeMasterDocument ]
+        , div (tocStyle2 model.width model.height) (toc document)
+      ]
+        
+        
+
+
+  --- 
+  --- TOC HELPERS
+  ---
   
 
 linkFromTocElement : TOCElement -> Html Msg 
@@ -261,17 +310,18 @@ lastDocTitleElement model =
     Just document -> span textElementStyle [text <| (String.left 10 document.title) ]
 
 
-titleElement : Model (Html Msg) -> Html Msg 
-titleElement model = 
-  case model.maybeCurrentDocument of 
+titleElement : Maybe Document -> Html Msg 
+titleElement maybeDocument = 
+  case maybeDocument of 
     Nothing -> span [style "margin-right" "10px"] [text <| ""]
     Just document -> span boldTextlementStyle [text <| document.title ]
 
-authorElement : Model (Html Msg) -> Html Msg 
-authorElement model = 
-  case model.maybeCurrentDocument of 
+authorElement : Maybe Document -> Html Msg 
+authorElement maybeDocument = 
+  case maybeDocument of 
     Nothing -> span [style "margin-left" "10px"] [text <| ""]
     Just document -> span textElementStyle [text <| document.authorName ]
+
 
 texMacroId : Maybe Document -> Maybe Int  
 texMacroId maybeDocument = 
