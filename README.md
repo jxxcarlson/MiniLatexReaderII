@@ -31,12 +31,12 @@ the host. These are configured n `index.html`:
 
 ```
  flags: {
-                host: "https://nshost.herokuapp.com",
-                documentId: 427,
-                width: "500px",
-                height: "600px",
-                leftmargin: "40px"
-            }
+    host: "https://nshost.herokuapp.com",
+    documentId: 427,
+    width: "500px",
+    height: "600px",
+    leftmargin: "40px"
+}
 ```
 
 ## Request Format
