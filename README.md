@@ -43,8 +43,8 @@ the host. These are configured n `index.html`:
 
 The backend server is the one used by `knode.io`.
 The proper form for a request to the backend server
-at `nshost.herokuapp.io` is
-`https://nshost.herokuapp.io/api/api/public/documents/ID`, where
+at `nshost.herokuapp.com` is
+`https://nshost.herokuapp.com/api/api/public/documents/ID`, where
 `ID` is an integer document ID with header `"APIVersion" : "V2"`.
 
 ## Document structure
