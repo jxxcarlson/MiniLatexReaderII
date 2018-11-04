@@ -270,7 +270,7 @@ titleElement model =
 authorElement : Model (Html Msg) -> Html Msg 
 authorElement model = 
   case model.maybeCurrentDocument of 
-    Nothing -> span [style "margin-right" "10px"] [text <| ""]
+    Nothing -> span [style "margin-left" "10px"] [text <| ""]
     Just document -> span textElementStyle [text <| document.authorName ]
 
 texMacroId : Maybe Document -> Maybe Int  
