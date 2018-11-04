@@ -122,7 +122,7 @@ update msg model =
                       (_, _) -> model.maybeLastDocument
                     renderedText = case maybeDocumentType of 
                       Just Master -> model.renderedText 
-                      Just Standard -> render model.maybeTexMacroDocument  model.counter documentRecord.document.content
+                      Just Standard -> render (Debug.log "MACROS" model.maybeTexMacroDocument)  model.counter documentRecord.document.content
                       Nothing -> model.renderedText 
                   in 
                     ( { model | 
@@ -157,7 +157,7 @@ update msg model =
 view : Model (Html Msg) -> Html Msg
 view model =
     div outerStyle
-     [  div [ ] [getDocumentButton 120, inputDocumentId model, toggleMasterButton model 120 ]
+     [  div [ ] [getDocumentButton 120, inputDocumentId model, toggleMasterButton model 120 ,texMacroStatusElement model]
         , div [ style "margin-top" "10px" ] [titleElement model, authorElement model ]
         , div [style "margin-top" "10px"] [display model]
        
@@ -191,7 +191,11 @@ displayMasterDocumentAsText model document =
 
 displayMasterDocument : Model (Html Msg) -> Document -> Html Msg
 displayMasterDocument model document =
-  div (tocStyle model.width model.height) (toc document)
+  div [] [
+   div [style "display" "none", HA.id "renderedtext"] [ text <| "$$\n" ++ (getTexMacros model.maybeTexMacroDocument ) ++ "\n$$"]
+   , div (tocStyle model.width model.height) (toc document)
+  ]
+  
 
 linkFromTocElement : TOCElement -> Html Msg 
 linkFromTocElement tocElement = 
@@ -210,15 +214,20 @@ toc document =
 
 
 render : Maybe Document -> Int -> String -> Html msg
-render maybeTexDocument seed sourceText =
+render maybeTexMacroDocument seed sourceText =
   let 
-    texMacros = case maybeTexDocument of 
+    texMacros = case maybeTexMacroDocument of 
       Nothing -> "\\newcommand{\\nothingXXX}{}"
       Just document -> document.content |> normalize  
   in 
     MiniLatex.renderWithSeed seed texMacros sourceText
 
-
+getTexMacros : Maybe Document -> String
+getTexMacros maybeTexDocument =
+  case maybeTexDocument of 
+      Nothing -> "\\newcommand{\\nothingXXX}{}"
+      Just document -> document.content |> normalize 
+  
 normalize : String -> String
 normalize str =
     str |> String.lines |> List.filter (\x -> x /= "") |> String.join "\n"
@@ -274,12 +283,12 @@ texMacroStatus : Model (Html msg) -> String
 texMacroStatus model = 
   case model.maybeTexMacroDocument of 
     Nothing -> "Macros: not loaded"
-    Just document -> "Macros: LOADED"
+    Just document -> "Macros: LOADED, length = " ++ (String.fromInt (String.length document.content))
 
 texMacroStatusElement : Model (Html Msg) -> Html Msg 
 texMacroStatusElement model = 
   case model.maybeCurrentDocument of 
-    Nothing -> span [style "margin-right" "10px"] [text <| ""]
+    Nothing -> span [style "margin-left" "10px"] [text <| ""]
     Just document -> span textElementStyle [text <| texMacroStatus model ]
 
 
