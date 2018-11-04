@@ -216,7 +216,7 @@ render maybeTexDocument seed sourceText =
       Nothing -> "\\newcommand{\\nothingXXX}{}"
       Just document -> document.content |> normalize  
   in 
-    MiniLatex.renderWithSeed seed  texMacros sourceText
+    MiniLatex.renderWithSeed seed texMacros sourceText
 
 
 normalize : String -> String
