@@ -15,10 +15,6 @@ import Time exposing (Posix)
 import Parser exposing(Parser, run, succeed, int, symbol, spaces, (|.), (|=))
 
 
--- backend : String
--- backend = "https://nshost.herokuapp.com"
--- -- backend = "http://localhost:4000"
-
 timeout : Float 
 timeout = 20000
 

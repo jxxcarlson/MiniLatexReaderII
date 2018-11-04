@@ -27,9 +27,19 @@ Note the trailing slash.
 
 Change the line `documentId: 427` to change the start-up document.
 Change the phrase `host: "https://nshost.herokuapp.com` to change
-the host.
+the host. These are configured n `index.html`:
 
-## Reqeust Format
+```
+ flags: {
+                host: "https://nshost.herokuapp.com",
+                documentId: 427,
+                width: "500px",
+                height: "600px",
+                leftmargin: "40px"
+            }
+```
+
+## Request Format
 
 The backend server is the one used by `knode.io`.
 The proper form for a request to the backend server
