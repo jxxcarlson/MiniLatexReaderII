@@ -42,8 +42,8 @@ type alias Model a =
     , maybeLastDocument : Maybe Document
     , maybeMasterDocument : Maybe Document
     , maybeTexMacroDocument : Maybe Document
+    , texMacros : String
     , maybeTexMacroId : Maybe Int
-    , maybeTexMacros : Maybe String
     , counter : Int
     , message : String
     , width : String
@@ -82,9 +82,9 @@ init flags =
       , maybeLastDocument = Nothing
       , maybeTexMacroDocument = Nothing
       , maybeMasterDocument = Nothing
+      , texMacros = "\\def\\half{\\small\\frac{1}{2}}\n\\def\\bbR{\\mathbb{R}}\n\\def\\caA{\\mathcal{A}}\n\\def\\caC{\\mathcal{C}}\n\\def\\caD{\\mathcal{D}}\n\\def\\caF{\\mathcal{F}}\n\\def\\caL{\\mathcal{L}}\n\\def\\caP{\\mathcal{P}}\n\\def\\UUU{\\mathcal{U}}\n\\def\\FFF{\\mathcal{F}}\n\\def\\ZZ{\\mathbb{Z}}\n\\def\\UU{\\mathbb{U}}\n\\def\\CC{\\mathbb{C}}\n\\newcommand{\\boa}{\\mathbf{a}}\n\\newcommand{\\boi}{\\mathbf{i}}\n\\newcommand{\\bop}{\\mathbf{p}}\n\\newcommand{\\boF}{\\mathbf{F}}\n\\newcommand{\\boL}{\\mathbf{L}}\n\\newcommand{\\bor}{\\mathbf r }\n\\newcommand{\\boR}{{\\bf R}}\n\\newcommand{\\bov}{\\mathbf v }\n\\newcommand{\\sinc}{\\,\\text{sinc}\\,}\n\\newcommand{\\bra}{\\langle}\n\\newcommand{\\ket}{\\rangle}\n\\newcommand{\\set}[1]{\\{#1\\}}\n\\newcommand{\\sett}[2]{\\{ #1 | #2 \\}}\n\\def\\card{{\\bf card}\\; }\n\\def\\id{\\mathbf{1}}\n"
       , maybeTexMacroId = Nothing
-      , maybeTexMacros = Nothing
-      , renderedText = render Nothing 0 initialText
+      , renderedText = text "Initial text"
       , documentIdString = ""
       , counter = 0
       , message = "Hello!"
@@ -147,27 +147,15 @@ update msg model =
 
                                 ( _, _ ) ->
                                     model.maybeLastDocument
-
-                        renderedText =
-                            case maybeDocumentType of
-                                Just Master ->
-                                    model.renderedText
-
-                                Just Standard ->
-                                    render model.maybeTexMacroDocument model.counter documentRecord.document.content
-
-                                Nothing ->
-                                    model.renderedText
                     in
                         ( { model
                             | maybeCurrentDocument = maybeCurrentDocument
                             , maybeTexMacroId = maybeTexMacroId
                             , maybeMasterDocument = maybeMasterDocument
                             , maybeLastDocument = maybeLastDocument
-                            , renderedText = renderedText
                             , counter = model.counter + 1
                           }
-                        , getTexDocumentById model.host maybeTexMacroId
+                        , maybeGetTexMacroDocument model maybeTexMacroId
                         )
 
                 Err err ->
@@ -197,13 +185,35 @@ update msg model =
                     ( model, Cmd.none )
 
 
+maybeGetTexMacroDocument : Model a -> Maybe Int -> Cmd Msg
+maybeGetTexMacroDocument model maybeTexMacroId =
+    case ( model.maybeTexMacroId, maybeTexMacroId ) of
+        ( Just oldId, Just newId ) ->
+            case oldId == newId of
+                True ->
+                    Cmd.none
+
+                False ->
+                    getTexDocumentById model.host <| Just newId
+
+        ( Nothing, Just newId ) ->
+            getTexDocumentById model.host <| Just newId
+
+        ( _, _ ) ->
+            Cmd.none
+
+
 view : Model (Html Msg) -> Html Msg
 view model =
-    div outerStyle
-        [ div [] [ getDocumentButton 120, inputDocumentId model, toggleMasterButton model 120 ]
-        , div [ style "margin-top" "10px" ] [ titleElement model, authorElement model ]
-        , div [ style "margin-top" "10px" ] [ display model ]
-        ]
+    let
+        _ =
+            Debug.log "VIEW" "This"
+    in
+        div outerStyle
+            [ div [] [ getDocumentButton 120, inputDocumentId model, toggleMasterButton model 120 ]
+            , div [ style "margin-top" "10px" ] [ titleElement model, authorElement model ]
+            , div [ style "margin-top" "10px" ] [ display model ]
+            ]
 
 
 
@@ -229,7 +239,25 @@ display model =
 
 displayStandardDocument : Model (Html Msg) -> Html Msg
 displayStandardDocument model =
-    div (renderedSourceStyle model.width model.height) [ model.renderedText ]
+    let
+        renderedText =
+            case model.maybeCurrentDocument of
+                Nothing ->
+                    text "No document"
+
+                Just document ->
+                    render model.counter (Debug.log "MACROS" <| getTexMacros model.maybeTexMacroDocument) document.content
+    in
+        div (renderedSourceStyle model.width model.height) [ renderedText ]
+
+
+render : Int -> String -> String -> Html msg
+render seed texMacros content =
+    let
+        contentWithMacros =
+            texMacros ++ content
+    in
+        MiniLatex.renderWithSeed seed "$$\n$$" contentWithMacros
 
 
 displayMasterDocumentAsText : Model (Html Msg) -> Document -> Html Msg
@@ -266,29 +294,14 @@ toc document =
 
 
 ---
---- DOCUMENT RENDERING
----
-
-
-render : Maybe Document -> Int -> String -> Html msg
-render maybeTexMacroDocument seed sourceText =
-    let
-        texMacros =
-            case maybeTexMacroDocument of
-                Nothing ->
-                    "\\newcommand{\\nothingXXX}{}"
-
-                Just document ->
-                    document.content |> normalize
-    in
-        MiniLatex.renderWithSeed seed texMacros sourceText
+--- DOCUMENT RENDERINGs ---
 
 
 getTexMacros : Maybe Document -> String
 getTexMacros maybeTexDocument =
     case maybeTexDocument of
         Nothing ->
-            "\\newcommand{\\nothingXXX}{}"
+            "\\newcommand{\\nothingXXX}{}" |> normalize
 
         Just document ->
             document.content |> normalize
@@ -296,7 +309,11 @@ getTexMacros maybeTexDocument =
 
 normalize : String -> String
 normalize str =
-    str |> String.lines |> List.filter (\x -> x /= "") |> String.join "\n"
+    str
+        |> String.lines
+        |> List.filter (\x -> x /= "")
+        |> String.join "\n"
+        |> (\x -> "$\n" ++ x ++ "\n$\n\n")
 
 
 
