@@ -205,15 +205,11 @@ maybeGetTexMacroDocument model maybeTexMacroId =
 
 view : Model (Html Msg) -> Html Msg
 view model =
-    let
-        _ =
-            Debug.log "VIEW" "This"
-    in
-        div outerStyle
-            [ div [] [ getDocumentButton 120, inputDocumentId model, toggleMasterButton model 120 ]
-            , div [ style "margin-top" "10px" ] [ titleElement model, authorElement model ]
-            , div [ style "margin-top" "10px" ] [ display model ]
-            ]
+    div outerStyle
+        [ div [] [ getDocumentButton 120, inputDocumentId model, toggleMasterButton model 120 ]
+        , div [ style "margin-top" "10px" ] [ titleElement model, authorElement model ]
+        , div [ style "margin-top" "10px" ] [ display model ]
+        ]
 
 
 
@@ -246,7 +242,7 @@ displayStandardDocument model =
                     text "No document"
 
                 Just document ->
-                    render model.counter (Debug.log "MACROS" <| getTexMacros model.maybeTexMacroDocument) document.content
+                    render model.counter (getTexMacros model.maybeTexMacroDocument) document.content
     in
         div (renderedSourceStyle model.width model.height) [ renderedText ]
 
@@ -293,8 +289,7 @@ toc document =
 
 
 
----
---- DOCUMENT RENDERINGs ---
+--- DOCUMENT RENDERING ---
 
 
 getTexMacros : Maybe Document -> String
