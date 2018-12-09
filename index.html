@@ -43,14 +43,36 @@
         <h3>Notes</h3>
 
         <p>The MiniLatex Reader II is a small app embedded in a ordinary
-            web page (this one!) that you can use to display
-            MiniLatex documents. The demo app points to nshost.herokuapp.com;
+            web page (this one!) that you can configure to display
+            MiniLatex documents or &quot;live&quot; lists of MiniLatex documents.
+            Here it is set up to show a list.  </p>
+
+
+            <p>The demo app points to nshost.herokuapp.com;
             however, it can be configured
-            to point to any web server (the <b>host</b>).
-            Try entering the ids 438 and (especially) 424 in the search box, upper left.</p>
+            to point to any web server (the <b>host</b>).  As currently
+            configured, it points to the table of contents of a set  of
+            course notes (document 424). You can bring up any document
+            if you know its ID. Try entering the ID 438 in the search
+            box, upper left.</p>
 
         <p>Try also the <a href="https://knode.io/phone/">smart phone version</a>
             at https://knode.io/phone/ .</p>
+
+          <h4>Configuration and Installation</h4>
+          <p>The host is configured by editing the text
+              shown below, which you will find in <code>index.html</code>.
+          </p>
+
+          <code>flags: {
+              host: "https://nshost.herokuapp.com",
+              documentId: 424
+          }</code>
+
+            <p>
+            See the README on <a href="https://github.com/jxxcarlson/MiniLatexReaderII">GitHub</a>
+            for installation and more configuration instructions.</p>
+
 
         <h4>Bugs</h4>
 
@@ -58,28 +80,15 @@
             We are workng on it.
         </p>
 
-        <h4>Configuration and Installation</h4>
-        <p>The host is configured by editing the text
-            shown below, which you will find in <code>index.html</code>.
-        </p>
-
-        <code>flags: {
-            host: "https://nshost.herokuapp.com",
-            documentId: 427
-        }</code>
-
-        See the README on <a href="https://github.com/jxxcarlson/MiniLatexReaderII">GitHub</a>
-        for installation and more configuration instructions.
 
         <h4>Plans</h4>
 
         <p>The present version of MiniLatex Reader II retrieves
             documents from the host using the document ID. We plan various
-            experiments, e.g., a simple search interface. Note that
-            &quot;configurable reading lists&quot; are also
-            possible. For an example, load the doument with ID 424.
-            We will soon have another version where the reading-list/table of contents
-            is presented side-by-side with the current document.</p>
+            experiments, e.g., a simple search interface. At the moment,
+            this page uses the
+            &quot;configurable reading list&quot; option by pointing
+            to  &quot;Master Document&quot;.</p>
 
         <h4>Source Code and Contact</h4>
 
@@ -87,6 +96,11 @@
             The project is open-source, so you can modify it for your own needs.
             Please contact me at jxxcarlson@gmail.com if you have comments
             or questions.
+        </p>
+
+        <p>
+            <strong>PS.</strong> For an integrated system for editing, creating, and distributing
+            MiniLatex documents, see <a href="https://knode.io">knode.io</a>.
         </p>
 
 
@@ -101,7 +115,7 @@
             node: root,
             flags: {
                 host: "https://nshost.herokuapp.com",
-                documentId: 427,
+                documentId: 424,
                 width: "500px",
                 height: "600px",
                 leftmargin: "40px"
