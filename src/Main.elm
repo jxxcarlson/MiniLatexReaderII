@@ -38,8 +38,16 @@ main =
 port onUrlChange : (String -> msg) -> Sub msg
 
 
+
+-- port pushUrl : String -> Cmd msg
+-- pushDocument : Document -> Cmd Msg
+-- pushDocument document =
+--     pushUrl <| "/" ++ String.fromInt document.id
+
+
 type alias Model a =
     { host : String
+    , locationHref : String
     , renderedText : a
     , documentIdString : String
     , maybeCurrentDocument : Maybe Document
@@ -69,6 +77,7 @@ type Msg
 
 type alias Flags =
     { host : String
+    , locationHref : String
     , documentId : Int
     , width : String
     , height : String
@@ -83,6 +92,7 @@ initialText =
 init : Flags -> ( Model (Html msg), Cmd Msg )
 init flags =
     ( { host = flags.host
+      , locationHref = flags.locationHref
       , maybeCurrentDocument = Nothing
       , maybeLastDocument = Nothing
       , maybeTexMacroDocument = Nothing
@@ -97,8 +107,18 @@ init flags =
       , height = flags.height
       , leftmargin = flags.leftmargin
       }
-    , getDocumentById flags.host flags.documentId
+    , getInitialDocument flags
     )
+
+
+getInitialDocument : Flags -> Cmd Msg
+getInitialDocument flags =
+    case UrlAppParser.idFromLocation flags.locationHref of
+        Nothing ->
+            getDocumentById flags.host flags.documentId
+
+        Just id ->
+            getDocumentById flags.host id
 
 
 subscriptions : Model (Html msg) -> Sub Msg
@@ -191,8 +211,18 @@ update msg model =
 
         UrlChanged str ->
             case UrlAppParser.toRoute str of
-                DocumentIdRef id ->
-                    ( model, Cmd.none )
+                DocumentIdRef maybeIdString ->
+                    case maybeIdString of
+                        Just idString ->
+                            case String.toInt idString of
+                                Just id ->
+                                    ( model, getDocumentById model.host id )
+
+                                Nothing ->
+                                    ( model, Cmd.none )
+
+                        Nothing ->
+                            ( model, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )

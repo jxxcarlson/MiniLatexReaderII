@@ -1,7 +1,20 @@
-module UrlAppParser exposing (Route(..), toRoute)
+module UrlAppParser exposing (Route(..), toRoute, route, idFromLocation)
 
 import Url exposing (Protocol(..), Url)
-import Url.Parser as Parser exposing ((</>), Parser, custom, int, map, oneOf, parse, s, string, top)
+import Url.Parser as Parser exposing ((</>), (<?>), Parser, custom, int, map, oneOf, parse, s, string, top)
+import Url.Parser.Query as Query
+
+
+idFromLocation : String -> Maybe Int
+idFromLocation str =
+    str
+        |> Url.fromString
+        |> Maybe.andThen .query
+        |> Maybe.map (String.split "=")
+        |> Maybe.map (List.drop 1)
+        |> Maybe.andThen List.head
+        |> Maybe.andThen String.toInt
+
 
 
 -- https://ellie-app.com/3bTbc38PH8ma1
@@ -10,7 +23,7 @@ import Url.Parser as Parser exposing ((</>), Parser, custom, int, map, oneOf, pa
 
 type Route
     = NotFound
-    | DocumentIdRef Int
+    | DocumentIdRef (Maybe String)
     | HomeRef String
     | InternalRef String
 
@@ -25,9 +38,13 @@ route : Parser (Route -> a) a
 route =
     oneOf
         [ map HomeRef (s "home" </> string)
-        , map DocumentIdRef int
+        , map DocumentIdRef (s "phone" <?> Query.string "id")
         , map InternalRef internalRef
         ]
+
+
+
+-- /phone/?id=44    ==>  Just (Overview (Just "44"))
 
 
 internalRef : Parser (String -> a) a
