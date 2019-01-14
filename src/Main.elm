@@ -1,4 +1,4 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 import Browser
 import Debounce exposing (Debounce)
@@ -12,6 +12,7 @@ import MiniLatex.MiniLatex as MiniLatex
 import Random
 import Task
 import Http
+import UrlAppParser exposing (Route(..))
 import Document
     exposing
         ( Document
@@ -32,6 +33,9 @@ main =
         , init = init
         , subscriptions = subscriptions
         }
+
+
+port onUrlChange : (String -> msg) -> Sub msg
 
 
 type alias Model a =
@@ -60,6 +64,7 @@ type Msg
     | ReceiveDocument (Result Http.Error DocumentRecord)
     | ReceiveTexDocument (Result Http.Error DocumentRecord)
     | ToggleMaster
+    | UrlChanged String
 
 
 type alias Flags =
@@ -98,7 +103,7 @@ init flags =
 
 subscriptions : Model (Html msg) -> Sub Msg
 subscriptions model =
-    Sub.none
+    onUrlChange UrlChanged
 
 
 update : Msg -> Model (Html msg) -> ( Model (Html msg), Cmd Msg )
@@ -182,6 +187,14 @@ update msg model =
                     ( { model | maybeCurrentDocument = model.maybeLastDocument }, Cmd.none )
 
                 Nothing ->
+                    ( model, Cmd.none )
+
+        UrlChanged str ->
+            case UrlAppParser.toRoute str of
+                DocumentIdRef id ->
+                    ( model, Cmd.none )
+
+                _ ->
                     ( model, Cmd.none )
 
 

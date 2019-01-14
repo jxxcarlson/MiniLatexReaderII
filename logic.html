@@ -48,25 +48,13 @@
             node: root,
             flags: {
                 host: "https://nshost.herokuapp.com",
-                documentId: 424,
+                documentId: 1017,
                 width: "360px",
                 height: "500px",
                 leftmargin: "40px"
             }
         });
 
-        // NAVIGATION
-
-        // Inform app of browser navigation (the BACK and FORWARD buttons)
-        window.addEventListener('popstate', function () {
-          app.ports.onUrlChange.send(location.href);
-        });
-
-        // Change the URL upon request, inform app of the change.
-        app.ports.pushUrl.subscribe(function(url) {
-          history.pushState({}, '', url);
-          app.ports.onUrlChange.send(location.href);
-        });
 
         var typesetTimeout = null;
         var typesetQueue = [];
