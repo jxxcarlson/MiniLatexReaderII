@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
-    <title>MiniLatex Reader II </title>
+    <title>MiniLatex Reader</title>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/custom-elements/1.1.1/custom-elements.min.js"></script>
 
@@ -33,7 +33,7 @@
 <body style="background-color: #e1e6e8; margin: 20px; height: 700px; width: 600px;">
 
     <div id="leftcolumn">
-        <h3 style="margin-bottom: 10px;">MiniLatex Reader II</h3>
+        <h3 style="margin-bottom: 10px;">MiniLatex Reader</h3>
 
         <div id="main"></div>
     </div>
@@ -42,22 +42,36 @@
 
         <h3>Notes</h3>
 
-        <p>The MiniLatex Reader II is a small app embedded in a ordinary
+        <p> MiniLatex Reader is a small app embedded in a ordinary
             web page (this one!) that you can configure to display
             MiniLatex documents or &quot;live&quot; lists of MiniLatex documents.
             Here it is set up to show a list.  </p>
 
 
-            <p>The demo app points to nshost.herokuapp.com;
-            however, it can be configured
-            to point to any web server (the <b>host</b>).  As currently
-            configured, it points to the table of contents of a set  of
-            course notes (document 424). You can bring up any document
-            if you know its ID. Try entering the ID 438 in the search
-            box, upper left.</p>
+        <p>The URL for this app is <a href="https://knode.io/reader2/">knode.io/reader2/</a>
+            &mdash; going to
+          that URL brings up the default document, namely the one you see on the left.
+          You can also use the app to display other documents.  Try these examples:
+        </p>
 
-        <p>Try also the <a href="https://knode.io/phone/">smart phone version</a>
-            at https://knode.io/phone/ .</p>
+        <p>(1)  <a href="https://knode.io/reader2/?id=1017">knode.io/reader2/?id=1017</a><p>
+
+        <p>(2)  <a href="https://knode.io/reader2/?id=427">knode.io/reader2/?id=427</a><p>
+
+        <p>Thus one app can serve many documents or document collections.  It is easy
+          to set these links up on any web page, e.g., your own home page at a university
+          or college or anyplace.  That page can contain whatever additional content you like.
+          By using method (1) or (2), you don't even have to have access to the server at
+          knode.io</p>
+
+
+
+
+        <p>You can also display documents by typing their ID in the search box.
+          Try the IDS 247. Try also the <a href="https://knode.io/phone/">smart phone version</a>
+            at <a href="https://knode.io/phone/">knode.io/phone<a></p>
+
+
 
           <h4>Configuration and Installation</h4>
           <p>The host is configured by editing the text
@@ -73,14 +87,8 @@
             See the README on <a href="https://github.com/jxxcarlson/MiniLatexReaderII">GitHub</a>
             for installation and more configuration instructions.</p>
 
-        <h4>Plans</h4>
 
-        <p>The present version of MiniLatex Reader II retrieves
-            documents from the host using the document ID. We plan various
-            experiments, e.g., a simple search interface. At the moment,
-            this page uses the
-            &quot;configurable reading list&quot; option by pointing
-            to  &quot;Master Document&quot;.</p>
+
 
         <h4>Source Code and Contact</h4>
 
@@ -100,6 +108,11 @@
 
 
     <script>
+
+        window.addEventListener('popstate', function () {
+          app.ports.onUrlChange.send(location.href);
+        });
+
         var sourceDiv = document.getElementById("source");
 
         var root = document.getElementById("main");
@@ -110,7 +123,8 @@
                 documentId: 424,
                 width: "500px",
                 height: "600px",
-                leftmargin: "40px"
+                leftmargin: "40px",
+                locationHref: location.href
             }
         });
 

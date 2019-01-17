@@ -1,6 +1,6 @@
-# MiniLatex Reader II
+# MiniLatex Readers
 
-MiniLatex Reader II is a small app which can be
+MiniLatex Reader is a small app which can be
 embedded in a web page and used to display
 LaTeX as HTML. Please see https://knode.io/reader/
 for a demonstration. Or try the phone version at
@@ -8,7 +8,7 @@ https://knode.io/phone/
 
 Note the trailing slash.
 
-## Using MiniLatex Reader II
+## Using MiniLatex Reader
 
 1. Clone this repository.
 
